@@ -1,160 +1,85 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conversor de Moedas</title>   
-    <link rel="icon" type="image/x-icon" href="/imgs/favicon-32x32.png">
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conversor de Moedas</title>
+  <meta name="description" content="Converta moedas e criptomoedas, veja cotações atualizadas e aprenda sobre educação financeira." />
+  <link rel="icon" type="image/png" href="imgs/favicon-32x32.png" />
+  <script>try{document.documentElement.dataset.theme=localStorage.getItem("fx-theme")||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light")}catch(e){}</script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-    <header>
-        <div class="container header-container">
-            <h1>Conversor de Moedas</h1>
-            <button id="toggleMode" aria-label="Alternar modo claro/escuro">🌙</button>
-        </div>
-    </header>
+  <header>
+    <div class="container header-container">
+      <h1>Conversor de Moedas</h1>
+      <nav>
+        <a href="#cotacoes">Cotações</a>
+        <a href="#artigos">Educação financeira</a>
+        <button id="toggleMode" aria-label="Alternar modo claro/escuro">🌙</button>
+      </nav>
+    </div>
+  </header>
 
-    <main>
-        <div class="converter card">
-            <form id="currencyForm">
-                <label for="fromCurrency">De:</label>
-                <select id="fromCurrency"></select>
-
-                <button type="button" id="swap" title="Inverter moedas">⇅</button>
-
-                <label for="toCurrency">Para:</label>
-                <select id="toCurrency"></select>
-
-                <label for="amount">Valor:</label>
-                <input type="number" id="amount" placeholder="Insira o valor" required />
-
-                <button type="submit" id="convertButton">Converter</button>
-            </form>
-
-            <p id="result"></p>
-            <p id="lastUpdate"></p>
-
-            <div class="rates">
-                <p><strong>Cotação Atual</strong> (atualiza a cada 30s):</p>
-                <p>Dólar: <span id="usdRate">Carregando...</span></p>
-                <p>Bitcoin: <span id="btcRate">Carregando...</span></p>
+  <main class="container">
+    <section class="grid2">
+      <div class="card converter">
+        <h2>Converter</h2>
+        <form id="currencyForm" onsubmit="return false">
+          <label for="amount">Valor</label>
+          <input type="text" id="amount" inputmode="decimal" value="1" autocomplete="off" />
+          <div class="pair">
+            <div>
+              <label for="fromCurrency">De</label>
+              <select id="fromCurrency"></select>
             </div>
+            <button type="button" id="swap" title="Inverter moedas" aria-label="Inverter moedas">⇄</button>
+            <div>
+              <label for="toCurrency">Para</label>
+              <select id="toCurrency"></select>
+            </div>
+          </div>
+        </form>
+        <div class="out" aria-live="polite">
+          <p id="result" class="big">Carregando cotações…</p>
+          <p id="rateLine" class="mute"></p>
+          <p id="lastUpdate" class="mute small"></p>
         </div>
-    </main>
+      </div>
 
-    <footer>
-        <p>&copy; 2025 Conversor de Moedas. DEV Noshi. Todos os direitos reservados.</p>
-    </footer>
+      <div class="card">
+        <div class="head-row"><h2>Dólar nos últimos 30 dias</h2><span id="chartInfo" class="mute small"></span></div>
+        <div id="chart" class="chart"><p class="mute">Carregando gráfico…</p></div>
+      </div>
+    </section>
 
-    <script src="js/script.js"></script>
-    <script>
-        const apiKey = 'b9a7dcaf23d976b7c810acc7';
-        const apiUrl = `https://v6.exchangerate-api.com/v6/${apiKey}/latest/`;
+    <section id="cotacoes">
+      <h2 class="sec">Cotações em reais</h2>
+      <p class="mute sub">Atualizam a cada minuto. Clique em um card para converter.</p>
+      <h3 class="sub2">Moedas</h3>
+      <div id="fiat" class="quotes"></div>
+      <h3 class="sub2">Criptomoedas</h3>
+      <div id="crypto" class="quotes"></div>
+    </section>
 
-        const selectFrom = document.getElementById("fromCurrency");
-        const selectTo = document.getElementById("toCurrency");
-        const result = document.getElementById("result");
-        const lastUpdate = document.getElementById("lastUpdate");
-        const usdRateSpan = document.getElementById("usdRate");
-        const btcRateSpan = document.getElementById("btcRate");
-        const form = document.getElementById("currencyForm");
+    <section id="artigos">
+      <h2 class="sec">Educação financeira</h2>
+      <p class="mute sub">Conteúdo educativo. Não é recomendação de investimento.</p>
+      <div id="articles" class="articles"></div>
+    </section>
+  </main>
 
-        async function loadCurrencies() {
-            try {
-                const response = await fetch(`https://v6.exchangerate-api.com/v6/${apiKey}/codes`);
-                const data = await response.json();
-                if (data.result === "success") {
-                    data.supported_codes.forEach(code => {
-                        const option1 = new Option(`${code[1]} (${code[0]})`, code[0]);
-                        const option2 = new Option(`${code[1]} (${code[0]})`, code[0]);
-                        selectFrom.appendChild(option1);
-                        selectTo.appendChild(option2);
-                    });
-                    selectFrom.value = "USD";
-                    selectTo.value = "BRL";
-                }
-            } catch (error) {
-                console.error("Erro ao carregar moedas", error);
-            }
-        }
+  <dialog id="artigo">
+    <button class="x" id="fechar" aria-label="Fechar artigo">✕</button>
+    <article id="artigoConteudo"></article>
+  </dialog>
 
-        async function loadRates() {
-            try {
-                const response = await fetch(apiUrl + "USD");
-                const data = await response.json();
-                if (data.result === "success") {
-                    usdRateSpan.innerText = data.conversion_rates.BRL.toFixed(2) + " BRL";
-                }
-            } catch (error) {
-                usdRateSpan.innerText = "Erro";
-            }
-            try {
-                const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd");
-                const data = await response.json();
-                if (data.bitcoin && data.bitcoin.usd) {
-                    btcRateSpan.innerText = data.bitcoin.usd.toFixed(2) + " USD";
-                }
-            } catch (error) {
-                btcRateSpan.innerText = "Erro";
-            }
-        }
+  <footer>
+    <p>&copy; 2026 Conversor de Moedas. DEV Noshi. Todos os direitos reservados.</p>
+    <p class="small">Cotações: AwesomeAPI e Frankfurter (Banco Central Europeu). Valores de referência, sem garantia de negociação.</p>
+  </footer>
 
-        document.getElementById("swap").addEventListener("click", () => {
-            const temp = selectFrom.value;
-            selectFrom.value = selectTo.value;
-            selectTo.value = temp;
-        });
-
-        form.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const fromCurrency = selectFrom.value;
-            const toCurrency = selectTo.value;
-            const amount = parseFloat(document.getElementById("amount").value);
-            if (isNaN(amount) || amount <= 0) {
-                result.innerText = "Por favor, insira um valor válido.";
-                return;
-            }
-            try {
-                const response = await fetch(apiUrl + fromCurrency);
-                const data = await response.json();
-                if (data.result === "success") {
-                    const rate = data.conversion_rates[toCurrency];
-                    if (rate) {
-                        const convertedValue = (amount * rate).toFixed(2);
-                        result.innerText = `${amount} ${fromCurrency} = ${convertedValue} ${toCurrency}`;
-                        lastUpdate.innerText = `Última atualização: ${new Date(data.time_last_update_utc).toLocaleString()}`;
-                        localStorage.setItem("lastConversion", JSON.stringify({ fromCurrency, toCurrency, amount, convertedValue }));
-                    } else {
-                        result.innerText = "Erro ao obter taxa de câmbio.";
-                    }
-                } else {
-                    result.innerText = "Erro na resposta da API.";
-                }
-            } catch (error) {
-                result.innerText = "Erro na conexão com a API.";
-                console.error(error);
-            }
-        });
-
-        function loadLastConversion() {
-            const lastConversion = localStorage.getItem("lastConversion");
-            if (lastConversion) {
-                const { fromCurrency, toCurrency, amount, convertedValue } = JSON.parse(lastConversion);
-                selectFrom.value = fromCurrency;
-                selectTo.value = toCurrency;
-                document.getElementById("amount").value = amount;
-                result.innerText = `${amount} ${fromCurrency} = ${convertedValue} ${toCurrency}`;
-            }
-        }
-
-        loadCurrencies().then(() => {
-            loadLastConversion();
-            loadRates();
-            setInterval(loadRates, 30000);
-        });
-    </script>
-
-    <script src="js/script.js"></script>
+  <script src="js/script.js"></script>
 </body>
 </html>
